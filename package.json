@@ -1,0 +1,23 @@
+{
+  "name": "ai-popup-assistant",
+  "version": "1.0.0",
+  "description": "A quick desktop AI assistant",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "electron": "^42.1.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.97.0",
+    "@google/genai": "^2.4.0",
+    "anthropic": "^0.0.0",
+    "anthropic-ai": "^0.0.10",
+    "dotenv": "^17.4.2"
+  }
+}

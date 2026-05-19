@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI Assistant</title>
+
+    <style>
+      body {
+        font-family: Arial;
+        padding: 20px;
+      }
+
+      #response {
+        margin-top: 20px;
+      }
+
+      input {
+        width: 300px;
+        padding: 10px;
+      }
+
+      button {
+        padding: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>AI Popup Assistant</h2>
+
+    <input id="questionInput" type="text" placeholder="Ask something..." />
+
+    <button onclick="sendQuestion()">Send</button>
+
+    <div id="response"></div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+      async function sendQuestion() {
+        console.log("Button clicked!");
+        const question =
+          document.getElementById("questionInput").value;
+
+        console.log("Question:", question);
+        document.getElementById("response").innerText =
+          "Thinking... ";
+
+          console.log("Sending question to main process...");
+        const answer = await ipcRenderer.invoke(
+          "ask-ai",
+          question
+        );
+
+        document.getElementById("response").innerText = answer;
+      }
+
+      // Listen for the Enter key on the input box
+      document.getElementById("questionInput").addEventListener("keyup", function(event) {
+        // Check if the key pressed was 'Enter'
+        if (event.key === "Enter") {
+        // Prevent the default browser action if necessary
+        event.preventDefault(); 
+        // Call your existing function automatically
+        sendQuestion();
+        }
+      });
+    </script>
+  </body>
+</html>
