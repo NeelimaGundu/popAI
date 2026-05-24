@@ -1,6 +1,6 @@
 require('dotenv').config();
 // Importing modules
-const { app, BrowserWindow, ipcMain, globalShortcut} = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, screen} = require('electron');
 
 // Import ai.js
 const askAI = require('./ai');
@@ -15,7 +15,10 @@ const createWindow = () => {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-    }
+    },
+    alwaysOnTop: true,
+    frame: false,
+    show: false
   })
 
   win.loadFile('index.html')
@@ -25,19 +28,46 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
-  const ret = globalShortcut.register('CommandOrControl+Shift+Space', () => {
-    console.log("Global Shortcut CommandOrControl+Shift+Space Pressed!");
+  const ret = globalShortcut.register('CommandOrControl+Shift+P', () => {
+    console.log('CommandOrControl+Shift+P is pressed');
+  if (win.isVisible()) {
+    win.hide();
+  } else {
+    // Clean, fixed pixel placement coordinates
+      const targetX = 1050; 
+      const targetY = 550;  
 
-    if (win) {
-      if (win.isMinimized()) win.restore();
+      win.setPosition(targetX, targetY);
       win.show();
       win.focus();
-    }
+  }
   });
 
   if (!ret) {
     console.log('Registration failed! The hotkey might be used by another app.');
   }
+
+  win.on('focus', () => {
+    globalShortcut.register('Escape', () => {
+      if (win && win.isVisible()) {
+        win.hide();
+      }
+    });
+  });
+
+  win.on('blur', () => {
+    if (win) {
+      win.hide();
+    }
+  });
+
+  win.on('blur', () => {
+    globalShortcut.unregister('Escape');
+  });
+
+  win.setVisibleOnAllWorkspaces(true, { visibleOnAllWorkspaces: true });
+
+  win.setAlwaysOnTop(true, 'screen-saver');
 
   // Open a window if none are open (macOS)
   app.on('activate', () => {
@@ -59,3 +89,7 @@ ipcMain.handle("ask-ai", async (event, question) => {
     return "Error generating response.";
   }
 });
+
+if (process.platform === 'darwin') {
+  app.dock.hide();
+} // Hide the dock icon on macOS
