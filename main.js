@@ -18,7 +18,9 @@ const createWindow = () => {
     },
     alwaysOnTop: true,
     frame: false,
-    show: false
+    show: false,
+    transparent: true,     // Cuts away the native square window backing
+    backgroundColor: '#00000000'
   })
 
   win.loadFile('index.html')
