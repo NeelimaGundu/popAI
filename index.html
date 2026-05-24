@@ -2,67 +2,181 @@
 <html>
   <head>
     <title>AI Assistant</title>
-
     <style>
-      body {
-        font-family: Arial;
-        padding: 20px;
+      /* 1. Base Styles & Smooth Scrolling Reset */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+      
+      html, body {
+        background-color: transparent !important;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
       }
 
-      #response {
-        margin-top: 20px;
+      /* 2. Professional Deep Dark Theme Container */
+      .assistant-container {
+        width: 100%;
+        height: 100%;
+        background-color: #1a1a1e !important; 
+        border: 1px solid #2d2d34;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        box-sizing: border-box; 
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
       }
 
-      input {
-        width: 300px;
-        padding: 10px;
+      /* 3. Smooth Scrolling Response Feed Box */
+      .chat-history {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        padding-right: 4px;
+        scroll-behavior: smooth;
       }
 
-      button {
-        padding: 10px;
+      /* Custom Minimal Scrollbar Track styling */
+      .chat-history::-webkit-scrollbar {
+        width: 6px;
+      }
+      .chat-history::-webkit-scrollbar-thumb {
+        background-color: #3a3a42;
+        border-radius: 4px;
+      }
+
+      .message {
+        color: #e4e4e7;            /* Off-white soft reading text color */
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        background-color: #26262b; /* Slightly lighter bubble color */
+        border-radius: 10px;
+        word-wrap: break-word;     /* Stops text clipping outside the box */
+      }
+
+      /* Subtle styling modification to flag thinking/loading states */
+      .message.system-status {
+        color: #a1a1aa;
+        background-color: #202024;
+        font-style: italic;
+      }
+
+      /* 4. Sleek Text Input Box with Focus */
+      .input-wrapper {
+        position: relative;
+        display: flex;
+      }
+
+      .assistant-input {
+        width: 100%;
+        background-color: #26262b;
+        border: 1px solid #3a3a42;
+        border-radius: 10px;
+        padding: 12px 16px;
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;             
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .assistant-input:focus {
+        border-color: #6366f1;     /* Indigo professional focus ring */
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      }
+
+      .assistant-input::placeholder {
+        color: #71717a;
       }
     </style>
   </head>
 
   <body>
-    <h2>AI Popup Assistant</h2>
+    <!-- FIXED: Wrapped items back inside the structural container wrapper -->
+    <div class="assistant-container">
+      
+      <!-- Smooth Scrolling Response Feed Box -->
+      <div class="chat-history" id="chatHistory">
+        <div class="message">Hello! How can I help you today?</div>
+      </div>
 
-    <input id="questionInput" type="text" placeholder="Ask something..." />
-
-    <button onclick="sendQuestion()">Send</button>
-
-    <div id="response"></div>
+      <!-- Input Layout Module -->
+      <div class="input-wrapper">
+        <input 
+          type="text" 
+          id="questionInput" 
+          class="assistant-input" 
+          placeholder="Ask anything..." 
+          autocomplete="off"
+        />
+      </div>
+    </div>
 
     <script>
       const { ipcRenderer } = require("electron");
+      const inputField = document.getElementById('questionInput');
+      const chatHistory = document.getElementById("chatHistory");
+
+      // Automatically focus typing cursor instantly on re-open
+      window.addEventListener('focus', () => {
+        if (inputField) {
+            inputField.focus();
+            inputField.select(); 
+        }
+      });
+
       async function sendQuestion() {
-        console.log("Button clicked!");
-        const question =
-          document.getElementById("questionInput").value;
+        const question = inputField.value.trim();
+        
+        // Prevent submission if empty string
+        if (!question) return;
 
         console.log("Question:", question);
-        document.getElementById("response").innerText =
-          "Thinking... ";
+        
+        // 1. Instantly append user's question bubble
+        chatHistory.innerHTML += `<div class="message" style="background-color: #312e81;"><b>You:</b> ${question}</div>`;
+        
+        // 2. Clear out the input bar instantly so the user knows it's working
+        inputField.value = "";
+        
+        // 3. Inject a temporary status bubble inside the scroll container
+        const statusId = "thinking-" + Date.now();
+        chatHistory.innerHTML += `<div class="message system-status" id="${statusId}">Thinking...</div>`;
+        scrollToBottom();
 
-          console.log("Sending question to main process...");
-        const answer = await ipcRenderer.invoke(
-          "ask-ai",
-          question
-        );
+        console.log("Sending question to main process...");
+        const answer = await ipcRenderer.invoke("ask-ai", question);
 
-        document.getElementById("response").innerText = answer;
+        // 4. Remove the temporary thinking bubble
+        const temporaryBubble = document.getElementById(statusId);
+        if (temporaryBubble) temporaryBubble.remove();
+
+        // 5. Render final AI message bubble and scroll
+        chatHistory.innerHTML += `<div class="message"><b>AI:</b> ${answer}</div>`;
+        scrollToBottom();
       }
 
       // Listen for the Enter key on the input box
-      document.getElementById("questionInput").addEventListener("keyup", function(event) {
-        // Check if the key pressed was 'Enter'
+      inputField.addEventListener("keyup", function(event) {
         if (event.key === "Enter") {
-        // Prevent the default browser action if necessary
-        event.preventDefault(); 
-        // Call your existing function automatically
-        sendQuestion();
+          event.preventDefault(); 
+          sendQuestion();
         }
       });
+
+      function scrollToBottom() {
+        if (chatHistory) {
+          chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+      }
     </script>
   </body>
 </html>
