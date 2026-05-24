@@ -35,6 +35,15 @@
 
     <script>
       const { ipcRenderer } = require("electron");
+
+      const inputField = document.getElementById('questionInput');
+      window.addEventListener('focus', () => {
+        if (inputField) {
+            inputField.focus();
+            inputField.select(); // Optional: selects existing text so you can instantly re-type
+        }
+      });
+
       async function sendQuestion() {
         console.log("Button clicked!");
         const question =

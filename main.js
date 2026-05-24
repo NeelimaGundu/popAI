@@ -40,6 +40,8 @@ app.whenReady().then(() => {
       win.setPosition(targetX, targetY);
       win.show();
       win.focus();
+
+      win.webContents.focus();
   }
   });
 
